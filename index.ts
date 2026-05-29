@@ -1,5 +1,9 @@
-// 1. Sistema de cobrança engessado
-class SistemaCobrancaStripe {
+// 1. Contrato de cobrança separado da IA
+interface IServicoCobranca {
+    cobrar(usuarioId: string, valorTokens: number): void;
+}
+
+class SistemaCobrancaStripe implements IServicoCobranca {
     cobrar(usuarioId: string, valorTokens: number): void {
         console.log(`Cobrando R$${valorTokens} via Stripe do usuário ${usuarioId}`);
     }
@@ -15,13 +19,15 @@ interface IModelosIA {
 // 3. A classe principal que gerencia tudo
 class AssistenteOmniIA implements IModelosIA {
     public nomeModelo: string;
+    private servicoCobranca: IServicoCobranca;
 
-    constructor(nomeModelo: string) {
+    constructor(nomeModelo: string, servicoCobranca: IServicoCobranca) {
         this.nomeModelo = nomeModelo;
+        this.servicoCobranca = servicoCobranca;
     }
 
     // Processador central cheio de condicionais
-    processarRequisicaoUsuario(prompt: string, tipo: string): void {
+    processarRequisicaoUsuario(prompt: string, tipo: string, usuarioId: string): void {
         console.log(`Iniciando processamento com ${this.nomeModelo}...`);
 
         if (tipo === "TEXTO") {
@@ -34,8 +40,7 @@ class AssistenteOmniIA implements IModelosIA {
             throw new Error("Tipo de IA não suportado pelo sistema.");
         }
        
-        // Finaliza cobrando o usuário direto aqui
-        this.registrarCobranca(1.50);
+        this.servicoCobranca.cobrar(usuarioId, 1.50);
     }
 
     gerarTexto(prompt: string): string {
@@ -50,16 +55,12 @@ class AssistenteOmniIA implements IModelosIA {
         return `[Áudio Gerado]: Arquivo de voz para: ${prompt}`;
     }
 
-    registrarCobranca(valor: number): void {
-        const stripe = new SistemaCobrancaStripe();
-        stripe.cobrar("user_999", valor);
-    }
 }
 
 // 4. Um modelo específico sendo forçado a herdar o que não deve
 class ModeloFocadoEmTexto extends AssistenteOmniIA {
     constructor() {
-        super("ChatGPT-4");
+        super("ChatGPT-4", new SistemaCobrancaStripe());
     }
 
     gerarImagem(prompt: string): string {
