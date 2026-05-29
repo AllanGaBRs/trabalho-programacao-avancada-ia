@@ -1,11 +1,23 @@
-// 1. Contrato de cobrança separado da IA
-interface IServicoCobranca {
+// 1. Contrato de pagamento separado das implementações concretas
+interface IServicoPagamento {
     cobrar(usuarioId: string, valorTokens: number): void;
 }
 
-class SistemaCobrancaStripe implements IServicoCobranca {
+class SistemaCobrancaStripe implements IServicoPagamento {
     cobrar(usuarioId: string, valorTokens: number): void {
         console.log(`Cobrando R$${valorTokens} via Stripe do usuário ${usuarioId}`);
+    }
+}
+
+class SistemaCobrancaPayPal implements IServicoPagamento {
+    cobrar(usuarioId: string, valorTokens: number): void {
+        console.log(`Cobrando R$${valorTokens} via PayPal do usuário ${usuarioId}`);
+    }
+}
+
+class SistemaCobrancaPix implements IServicoPagamento {
+    cobrar(usuarioId: string, valorTokens: number): void {
+        console.log(`Cobrando R$${valorTokens} via Pix do usuário ${usuarioId}`);
     }
 }
 
@@ -66,12 +78,12 @@ class GeradorAudio implements IProcessadorIA, IGeradorAudio {
 // 3. A classe principal orquestra serviços sem conhecer cada tipo de IA
 class AssistenteOmniIA {
     public nomeModelo: string;
-    private servicoCobranca: IServicoCobranca;
+    private servicoPagamento: IServicoPagamento;
     private processadores: { [tipo: string]: IProcessadorIA };
 
-    constructor(nomeModelo: string, servicoCobranca: IServicoCobranca, processadores: IProcessadorIA[]) {
+    constructor(nomeModelo: string, servicoPagamento: IServicoPagamento, processadores: IProcessadorIA[]) {
         this.nomeModelo = nomeModelo;
-        this.servicoCobranca = servicoCobranca;
+        this.servicoPagamento = servicoPagamento;
         this.processadores = {};
 
         processadores.forEach((processador) => {
@@ -89,7 +101,7 @@ class AssistenteOmniIA {
         }
 
         processador.processar(prompt);
-        this.servicoCobranca.cobrar(usuarioId, 1.50);
+        this.servicoPagamento.cobrar(usuarioId, 1.50);
     }
 
 }
@@ -98,10 +110,10 @@ class AssistenteOmniIA {
 class ModeloFocadoEmTexto {
     private assistente: AssistenteOmniIA;
 
-    constructor() {
+    constructor(servicoPagamento: IServicoPagamento) {
         this.assistente = new AssistenteOmniIA(
             "ChatGPT-4",
-            new SistemaCobrancaStripe(),
+            servicoPagamento,
             [new GeradorTexto()]
         );
     }
