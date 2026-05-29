@@ -70,11 +70,19 @@ class AssistenteOmniIA {
 
 }
 
-// 4. Um modelo específico registra apenas as capacidades que oferece
-class ModeloFocadoEmTexto extends AssistenteOmniIA {
+// 4. Um modelo específico não herda de um assistente com capacidades mais amplas
+class ModeloFocadoEmTexto {
+    private assistente: AssistenteOmniIA;
+
     constructor() {
-        super("ChatGPT-4", new SistemaCobrancaStripe(), [
-            new GeradorTexto()
-        ]);
+        this.assistente = new AssistenteOmniIA(
+            "ChatGPT-4",
+            new SistemaCobrancaStripe(),
+            [new GeradorTexto()]
+        );
+    }
+
+    processarTexto(prompt: string, usuarioId: string): void {
+        this.assistente.processarRequisicaoUsuario(prompt, "TEXTO", usuarioId);
     }
 }
