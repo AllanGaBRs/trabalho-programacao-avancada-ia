@@ -123,6 +123,12 @@ class ModeloFocadoEmTexto {
     }
 }
 
+// Exemplo de uso
+const servicoPagamento: IServicoPagamento = new SistemaCobrancaPix();
+const modeloTexto = new ModeloFocadoEmTexto(servicoPagamento);
+
+modeloTexto.processarTexto("Explique SOLID em poucas palavras.", "user_999");
+
 /*
 Resumo das decisões arquiteturais:
 SRP: a cobrança foi separada da geração de IA por meio de IServicoPagamento,
