@@ -122,3 +122,19 @@ class ModeloFocadoEmTexto {
         this.assistente.processarRequisicaoUsuario(prompt, "TEXTO", usuarioId);
     }
 }
+
+/*
+Resumo das decisões arquiteturais:
+SRP: a cobrança foi separada da geração de IA por meio de IServicoPagamento,
+deixando AssistenteOmniIA responsável apenas por orquestrar a requisição.
+OCP: novos tipos de IA entram como novos IProcessadorIA, sem alterar
+AssistenteOmniIA ou criar novos if/else no processamento.
+LSP: ModeloFocadoEmTexto deixou de herdar de AssistenteOmniIA, pois não deve
+prometer capacidades de imagem ou áudio que não consegue cumprir.
+ISP: a antiga interface ampla foi dividida em contratos menores, como
+IGeradorTexto, IGeradorImagem e IGeradorAudio, para cada classe depender só
+do comportamento que realmente implementa.
+DIP: AssistenteOmniIA e ModeloFocadoEmTexto dependem da abstração
+IServicoPagamento, permitindo trocar Stripe, PayPal ou Pix sem mudar a lógica
+de IA.
+*/
