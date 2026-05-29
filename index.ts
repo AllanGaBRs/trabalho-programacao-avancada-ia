@@ -9,32 +9,56 @@ class SistemaCobrancaStripe implements IServicoCobranca {
     }
 }
 
-// 2. Contrato aberto para novos tipos de geração
-interface IGeradorIA {
+// 2. Contratos pequenos e coesos para cada capacidade de IA
+interface IProcessadorIA {
     tipo: string;
-    gerar(prompt: string): string;
+    processar(prompt: string): string;
 }
 
-class GeradorTexto implements IGeradorIA {
+interface IGeradorTexto {
+    gerarTexto(prompt: string): string;
+}
+
+interface IGeradorImagem {
+    gerarImagem(prompt: string): string;
+}
+
+interface IGeradorAudio {
+    gerarAudio(prompt: string): string;
+}
+
+class GeradorTexto implements IProcessadorIA, IGeradorTexto {
     tipo = "TEXTO";
 
-    gerar(prompt: string): string {
+    processar(prompt: string): string {
+        return this.gerarTexto(prompt);
+    }
+
+    gerarTexto(prompt: string): string {
         return `[Texto Gerado]: Respondendo ao prompt: ${prompt}`;
     }
 }
 
-class GeradorImagem implements IGeradorIA {
+class GeradorImagem implements IProcessadorIA, IGeradorImagem {
     tipo = "IMAGEM";
 
-    gerar(prompt: string): string {
+    processar(prompt: string): string {
+        return this.gerarImagem(prompt);
+    }
+
+    gerarImagem(prompt: string): string {
         return `[Imagem Gerada]: URL da imagem baseada em: ${prompt}`;
     }
 }
 
-class GeradorAudio implements IGeradorIA {
+class GeradorAudio implements IProcessadorIA, IGeradorAudio {
     tipo = "AUDIO";
 
-    gerar(prompt: string): string {
+    processar(prompt: string): string {
+        return this.gerarAudio(prompt);
+    }
+
+    gerarAudio(prompt: string): string {
         return `[Áudio Gerado]: Arquivo de voz para: ${prompt}`;
     }
 }
@@ -43,28 +67,28 @@ class GeradorAudio implements IGeradorIA {
 class AssistenteOmniIA {
     public nomeModelo: string;
     private servicoCobranca: IServicoCobranca;
-    private geradores: { [tipo: string]: IGeradorIA };
+    private processadores: { [tipo: string]: IProcessadorIA };
 
-    constructor(nomeModelo: string, servicoCobranca: IServicoCobranca, geradores: IGeradorIA[]) {
+    constructor(nomeModelo: string, servicoCobranca: IServicoCobranca, processadores: IProcessadorIA[]) {
         this.nomeModelo = nomeModelo;
         this.servicoCobranca = servicoCobranca;
-        this.geradores = {};
+        this.processadores = {};
 
-        geradores.forEach((gerador) => {
-            this.geradores[gerador.tipo] = gerador;
+        processadores.forEach((processador) => {
+            this.processadores[processador.tipo] = processador;
         });
     }
 
     processarRequisicaoUsuario(prompt: string, tipo: string, usuarioId: string): void {
         console.log(`Iniciando processamento com ${this.nomeModelo}...`);
 
-        const gerador = this.geradores[tipo];
+        const processador = this.processadores[tipo];
 
-        if (!gerador) {
+        if (!processador) {
             throw new Error("Tipo de IA não suportado pelo sistema.");
         }
 
-        gerador.gerar(prompt);
+        processador.processar(prompt);
         this.servicoCobranca.cobrar(usuarioId, 1.50);
     }
 
